@@ -4,10 +4,14 @@ import com.niloy.config.JwtProvider;
 import com.niloy.domain.USER_ROLE;
 import com.niloy.modal.Cart;
 import com.niloy.modal.User;
+import com.niloy.modal.VerificationCode;
 import com.niloy.repository.CartRepository;
 import com.niloy.repository.UserRepository;
+import com.niloy.repository.VerificationCodeRepository;
 import com.niloy.response.SignupRequest;
 import com.niloy.service.AuthService;
+import com.niloy.service.EmailService;
+import com.niloy.utils.OtpUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -17,6 +21,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,9 +33,87 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final CartRepository cartRepository;
     private final JwtProvider jwtProvider;
+    private final VerificationCodeRepository verificationCodeRepository;
+    private final EmailService emailService;
 
     @Override
-    public String createUser(SignupRequest req) {
+    public void sendLoginOtp(String email) throws Exception {
+
+        String SINGING_PREFIX = "signup_";
+        if( email.startsWith(SINGING_PREFIX)){
+            email = email.substring(SINGING_PREFIX.length());
+
+            User user = userRepository.findByEmail(email);
+            if (user == null) {
+                throw new Exception("User not found with email: " + email);
+            }
+        }
+        VerificationCode isExist = verificationCodeRepository.findByEmail(email);
+        if (isExist != null) {
+            verificationCodeRepository.delete(isExist);
+        }
+        String otp = OtpUtils.generateOtp();
+
+        VerificationCode verificationCode = new VerificationCode();
+        verificationCode.setOtp(otp);
+        verificationCode.setEmail(email);
+        verificationCodeRepository.save(verificationCode);
+
+        String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm a"));
+
+        String subject = "OTP for Vendora login";
+
+        String text = "<html>" +
+                "<body style='margin: 0; padding: 0; background-color: #f4f4f7; font-family: \"Segoe UI\", Tahoma, Geneva, Verdana, sans-serif;'>" +
+                "<div style='max-width: 600px; margin: 40px auto; padding: 20px; background-color: #ffffff; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);'>" +
+
+                // Logo
+                "<div style='text-align: center; padding-bottom: 10px;'>" +
+                "<img src='https://cdn.pixabay.com/photo/2025/07/15/12/42/12-42-29-494__340.png' alt='Vendora Logo' style='width: 120px; margin-bottom: 10px;'/>" +
+                "<h2 style='color: #2c3e50; margin: 0;'>Vendora</h2>" +
+                "<p style='color: #888888; font-size: 14px; margin: 4px 0;'>Secure OTP Verification</p>" +
+                "<p style='color: #aaaaaa; font-size: 12px; margin-top: 0;'>" + currentTime + "</p>" +
+                "</div>" +
+
+                "<hr style='border: none; border-top: 1px solid #eee;'>" +
+
+                // Message
+                "<div style='padding: 20px 0;'>" +
+                "<p style='font-size: 16px; color: #333;'>Hi there,</p>" +
+                "<p style='font-size: 16px; color: #333;'>Please use the following One-Time Password (OTP) to complete your login:</p>" +
+                "<div style='font-size: 32px; font-weight: bold; color: #e67e22; background-color: #fef6ec; padding: 12px 24px; text-align: center; border-radius: 8px; margin: 20px 0;'>" +
+                otp +
+                "</div>" +
+                "<p style='font-size: 14px; color: #555;'>This OTP is valid for <strong>10 minutes</strong>. If you did not request this, you can safely ignore this email.</p>" +
+                "</div>" +
+
+                "<hr style='border: none; border-top: 1px solid #eee;'>" +
+
+                // Footer
+                "<div style='text-align: center; color: #999; font-size: 12px; margin-top: 20px;'>" +
+                "<p>Thank you for using Vendora.</p>" +
+                "<p style='margin-top: 8px;'>© 2025 Vendora Inc. All rights reserved.</p>" +
+                "</div>" +
+
+                "</div>" +
+                "</body></html>";
+
+
+        emailService.sendVerificationOtpEmail(email, otp, subject, text);
+
+
+
+    }
+
+    @Override
+    public String createUser(SignupRequest req) throws Exception {
+
+
+        VerificationCode verificationCode = verificationCodeRepository.findByEmail(req.getEmail());
+        if (verificationCode == null || !verificationCode.getOtp().equals(req.getOtp())) {
+            throw new Exception("Wrong OTP.....");
+        }
+
         User user = userRepository.findByEmail(req.getEmail());
         if(user ==null){
             User createdUser = new User();
