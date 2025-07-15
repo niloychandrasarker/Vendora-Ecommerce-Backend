@@ -11,9 +11,6 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaymentDetails {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
 
     private String paymentId;
     private String razorpayPaymentLinkId;

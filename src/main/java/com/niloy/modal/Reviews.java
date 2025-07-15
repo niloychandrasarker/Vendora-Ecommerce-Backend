@@ -25,15 +25,13 @@ public class Reviews {
     private int rating;
 
     @ElementCollection
-    private List<String> producImages;
+    private List<String> productImages;
 
     @JsonIgnore
     @ManyToOne
-    @Column(nullable = false)
     private Product product;
 
     @ManyToOne
-    @Column(nullable = false)
     private User user;
 
     @Column(nullable = false)
