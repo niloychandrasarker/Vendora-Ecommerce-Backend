@@ -4,6 +4,7 @@ import com.niloy.domain.USER_ROLE;
 import com.niloy.modal.User;
 import com.niloy.modal.VerificationCode;
 import com.niloy.repository.UserRepository;
+import com.niloy.request.LoginRequest;
 import com.niloy.response.ApiResponse;
 import com.niloy.response.AuthResponse;
 import com.niloy.response.SignupRequest;
@@ -44,8 +45,11 @@ public class AuthController {
         ApiResponse res = new ApiResponse();
         res.setMessage("Otp sent successfully");
 
-
-
         return ResponseEntity.ok(res);
+    }
+    @PostMapping("/signin")
+    public ResponseEntity<AuthResponse> loginHandler(@RequestBody LoginRequest req) throws Exception {
+        AuthResponse authResponse = authService.singIn(req);
+        return ResponseEntity.ok(authResponse);
     }
 }
