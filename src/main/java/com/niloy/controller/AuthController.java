@@ -4,6 +4,7 @@ import com.niloy.domain.USER_ROLE;
 import com.niloy.modal.User;
 import com.niloy.modal.VerificationCode;
 import com.niloy.repository.UserRepository;
+import com.niloy.request.LoginOtpRequest;
 import com.niloy.request.LoginRequest;
 import com.niloy.response.ApiResponse;
 import com.niloy.response.AuthResponse;
@@ -39,9 +40,9 @@ public class AuthController {
     }
 
     @PostMapping("/sent/login-signup-otp")
-    public ResponseEntity<ApiResponse>sentOtpHandler(@RequestBody VerificationCode req) throws Exception {
+    public ResponseEntity<ApiResponse>sentOtpHandler(@RequestBody LoginOtpRequest req) throws Exception {
 
-        authService.sendLoginOtp(req.getEmail());
+        authService.sendLoginOtp(req.getEmail(),req.getRole());
         ApiResponse res = new ApiResponse();
         res.setMessage("Otp sent successfully");
 

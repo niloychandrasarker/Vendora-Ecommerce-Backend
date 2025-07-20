@@ -3,9 +3,11 @@ package com.niloy.service.Impl;
 import com.niloy.config.JwtProvider;
 import com.niloy.domain.USER_ROLE;
 import com.niloy.modal.Cart;
+import com.niloy.modal.Seller;
 import com.niloy.modal.User;
 import com.niloy.modal.VerificationCode;
 import com.niloy.repository.CartRepository;
+import com.niloy.repository.SellerRepository;
 import com.niloy.repository.UserRepository;
 import com.niloy.repository.VerificationCodeRepository;
 import com.niloy.request.LoginRequest;
@@ -41,17 +43,26 @@ public class AuthServiceImpl implements AuthService {
     private final VerificationCodeRepository verificationCodeRepository;
     private final EmailService emailService;
     private final CustomUserServiceImpl customUserService;
+    private final SellerRepository sellerRepository;
 
     @Override
-    public void sendLoginOtp(String email) throws Exception {
+    public void sendLoginOtp(String email, USER_ROLE role) throws Exception {
 
-        String SINGING_PREFIX = "signup_";
-        if( email.startsWith(SINGING_PREFIX)){
-            email = email.substring(SINGING_PREFIX.length());
+        String SIGNING_PREFIX = "signing_";
 
+        if (email.startsWith(SIGNING_PREFIX)) {
+            email = email.substring(SIGNING_PREFIX.length());
+        }
+
+        if (role.equals(USER_ROLE.ROLE_SELLER)) {
+            Seller seller = sellerRepository.findByEmail(email);
+            if (seller == null) {
+                throw new Exception("seller not found");
+            }
+        } else {
             User user = userRepository.findByEmail(email);
             if (user == null) {
-                throw new Exception("User not found with email: " + email);
+                throw new Exception("user not exist with provided email");
             }
         }
         VerificationCode isExist = verificationCodeRepository.findByEmail(email);
@@ -163,8 +174,17 @@ public class AuthServiceImpl implements AuthService {
         return authResponse;
     }
 
-    private Authentication authenticate(String username, String otp) {
+    private Authentication authenticate(String username, String otp) throws Exception {
         UserDetails userDetails = customUserService.loadUserByUsername(username);
+
+        String SELLER_PREFIX = "seller_";
+
+        if(username.startsWith(SELLER_PREFIX)){
+
+            username = username.substring(SELLER_PREFIX.length());
+
+        }
+
         if(userDetails == null){
             throw new BadCredentialsException("User not found with username: " + username);
         }
@@ -172,7 +192,7 @@ public class AuthServiceImpl implements AuthService {
         VerificationCode verificationCode = verificationCodeRepository.findByEmail(username);
 
         if (verificationCode == null || !verificationCode.getOtp().equals(otp)) {
-            throw new BadCredentialsException("Wrong otp");
+            throw new Exception("Wrong otp");
         }
         return new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities()
