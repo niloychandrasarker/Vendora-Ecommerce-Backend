@@ -1,13 +1,11 @@
 package com.niloy.controller;
 
-import com.niloy.config.JwtProvider;
 import com.niloy.domain.AccountStatus;
+import com.niloy.exceptions.SellerException;
 import com.niloy.modal.Seller;
-import com.niloy.modal.SellerReport;
 import com.niloy.modal.VerificationCode;
 import com.niloy.repository.VerificationCodeRepository;
 import com.niloy.request.LoginRequest;
-import com.niloy.response.ApiResponse;
 import com.niloy.response.AuthResponse;
 import com.niloy.service.AuthService;
 import com.niloy.service.EmailService;
@@ -29,7 +27,6 @@ public class SellerController {
     private final VerificationCodeRepository verificationCodeRepository;
     private final AuthService authService;
     private final EmailService emailService;
-    private final JwtProvider jwtProvider;
 
 
     @PostMapping("/login")
@@ -75,7 +72,7 @@ public class SellerController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Seller> getSellerById(@PathVariable Long id) throws Exception {
+    public ResponseEntity<Seller> getSellerById(@PathVariable Long id) throws SellerException {
         Seller seller = sellerService.getSellerById(id);
         return new ResponseEntity<>(seller, HttpStatus.OK);
     }

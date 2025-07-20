@@ -1,6 +1,7 @@
 package com.niloy.service;
 
 import com.niloy.domain.AccountStatus;
+import com.niloy.exceptions.SellerException;
 import com.niloy.modal.Seller;
 
 
@@ -13,7 +14,7 @@ public interface SellerService {
 
     Seller createSeller(Seller seller) throws Exception;
 
-    Seller getSellerById(Long id) throws Exception;
+    Seller getSellerById(Long id) throws SellerException;
 
     Seller getSellerByEmail(String email) throws Exception;
 

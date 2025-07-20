@@ -3,6 +3,7 @@ package com.niloy.service.Impl;
 import com.niloy.config.JwtProvider;
 import com.niloy.domain.AccountStatus;
 import com.niloy.domain.USER_ROLE;
+import com.niloy.exceptions.SellerException;
 import com.niloy.modal.Address;
 import com.niloy.modal.Seller;
 import com.niloy.repository.AddressRepository;
@@ -53,9 +54,9 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
-    public Seller getSellerById(Long id) throws Exception {
+    public Seller getSellerById(Long id) throws SellerException {
         return sellerRepository.findById(id)
-                .orElseThrow(() -> new Exception("Seller not found with id: " + id));
+                .orElseThrow(() -> new SellerException("Seller not found with id: " + id));
     }
 
     @Override
