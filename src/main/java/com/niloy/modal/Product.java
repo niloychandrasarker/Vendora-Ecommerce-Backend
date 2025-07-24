@@ -21,13 +21,13 @@ public class Product {
 
     private String description;
 
-    private String mrpPrice;
+    private int mrpPrice;
 
-    private String sellingPrice;
+    private int sellingPrice;
 
-    private String discountPercentage;
+    private int discountPercentage;
 
-    private String quantity;
+    private int quantity;
 
     private String color;
 
