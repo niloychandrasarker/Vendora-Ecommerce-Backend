@@ -1,14 +1,17 @@
 package com.niloy.controller;
 
+import com.niloy.config.JwtProvider;
 import com.niloy.domain.AccountStatus;
 import com.niloy.exceptions.SellerException;
 import com.niloy.modal.Seller;
+import com.niloy.modal.SellerReport;
 import com.niloy.modal.VerificationCode;
 import com.niloy.repository.VerificationCodeRepository;
 import com.niloy.request.LoginRequest;
 import com.niloy.response.AuthResponse;
 import com.niloy.service.AuthService;
 import com.niloy.service.EmailService;
+import com.niloy.service.SellerReportService;
 import com.niloy.service.SellerService;
 import com.niloy.utils.OtpUtils;
 import jakarta.mail.MessagingException;
@@ -27,6 +30,8 @@ public class SellerController {
     private final VerificationCodeRepository verificationCodeRepository;
     private final AuthService authService;
     private final EmailService emailService;
+    private final JwtProvider jwtProvider;
+    private final SellerReportService sellerReportService;
 
 
     @PostMapping("/login")
@@ -83,13 +88,14 @@ public class SellerController {
         return new ResponseEntity<>(seller, HttpStatus.OK);
     }
 
-//    @GetMapping("/report")
-//    public ResponseEntity<SellerReport> getSellerReport(@RequestHeader("Authorization") String jwt) throws SellerException {
+    @GetMapping("/report")
+    public ResponseEntity<SellerReport> getSellerReport(
+            @RequestHeader("Authorization") String jwt) throws Exception {
 //        String email = jwtProvider.getEmailFromToken(jwt);
-//        Seller seller = sellerService.getSellerByEmail(email);
-//        SellerReport report = sellerReportService.getSellerReport(seller);
-//        return new ResponseEntity<>(report, HttpStatus.OK);
-//    }
+        Seller seller = sellerService.getSellerProfile(jwt);
+        SellerReport report = sellerReportService.getSellerReport(seller);
+        return new ResponseEntity<>(report, HttpStatus.OK);
+    }
 
     @GetMapping
     public ResponseEntity<List<Seller>> getAllSellers(@RequestParam(required = false) AccountStatus status) {
