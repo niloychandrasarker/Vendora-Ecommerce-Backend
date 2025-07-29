@@ -22,7 +22,7 @@ public class Reviews {
     private String reviewText;
 
     @Column(nullable = false)
-    private int rating;
+    private double rating;
 
     @ElementCollection
     private List<String> productImages;
